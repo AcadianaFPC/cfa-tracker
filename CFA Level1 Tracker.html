@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>CFA Level 1 — Acadiana FPC Study Tracker</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #f5f0e8; font-family: Georgia, serif; color: #2d2520; }
+  .wrap { max-width: 800px; margin: 0 auto; padding: 16px; }
+
+  /* NAV */
+  .nav { display: flex; gap: 4px; background: #2d2520; border-radius: 12px; padding: 6px; margin-bottom: 18px; }
+  .nav-btn { flex: 1; padding: 10px 0; border: none; border-radius: 8px; cursor: pointer; font-family: Georgia, serif; font-size: 14px; font-weight: bold; background: transparent; color: #c8a878; transition: all 0.15s; }
+  .nav-btn.active { background: #8B0000; color: white; }
+
+  /* CARDS */
+  .hero { background: #8B0000; border-radius: 16px; padding: 24px; color: white; margin-bottom: 16px; }
+  .hero-sub { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; opacity: 0.7; margin-bottom: 4px; }
+  .hero-title { font-size: 22px; font-weight: bold; margin-bottom: 4px; }
+  .hero-meta { font-size: 13px; opacity: 0.8; margin-bottom: 16px; }
+  .hero-pct { font-size: 28px; font-weight: bold; min-width: 56px; }
+
+  .ai-bar { background: #2C3E7A; border-radius: 12px; padding: 14px 18px; color: white; margin-bottom: 16px; }
+  .ai-bar-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.7; margin-bottom: 8px; }
+  .ai-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .ai-item-name { font-weight: bold; font-size: 13px; }
+  .ai-item-desc { font-size: 12px; opacity: 0.7; }
+
+  .section-title { font-size: 17px; font-weight: bold; margin-bottom: 10px; color: #2d2520; }
+
+  /* SPRINT CARDS */
+  .sprint-card { background: white; border-radius: 12px; padding: 14px 18px; cursor: pointer; border: 2px solid #e8e0d8; margin-bottom: 8px; transition: all 0.15s; }
+  .sprint-card:hover { border-color: #8B0000; }
+  .sprint-card-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .sprint-num { font-size: 11px; color: #888; margin-right: 8px; }
+  .sprint-name { font-weight: bold; font-size: 15px; }
+  .sprint-pct-label { font-size: 13px; font-weight: bold; }
+  .sprint-weeks { font-size: 11px; color: #888; }
+  .sprint-arrow { font-size: 16px; color: #aaa; margin-left: 8px; }
+
+  .final-card { background: #2d2520; border-radius: 12px; padding: 14px 18px; color: white; margin-bottom: 8px; }
+  .final-row { display: flex; gap: 12px; margin-bottom: 5px; font-size: 12px; }
+  .final-date { opacity: 0.6; min-width: 85px; }
+
+  /* METER */
+  .meter-wrap { background: #e8e0d8; border-radius: 99px; overflow: hidden; }
+  .meter-fill { border-radius: 99px; transition: width 0.4s ease; }
+
+  /* DAY GRID */
+  .day-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+  .day-card { background: white; border-radius: 10px; padding: 12px 14px; cursor: pointer; border: 2px solid #e8e0d8; transition: all 0.15s; }
+  .day-card:hover { border-color: #8B0000; }
+  .day-num { font-size: 10px; color: #888; margin-bottom: 2px; }
+  .day-label { font-weight: bold; font-size: 12px; margin-bottom: 6px; line-height: 1.3; }
+  .day-pct-label { font-size: 10px; text-align: right; margin-top: 3px; color: #888; }
+
+  /* DAY VIEW */
+  .day-header { background: white; border-radius: 14px; padding: 20px 22px; margin-bottom: 14px; }
+  .day-meta { font-size: 11px; color: #888; margin-bottom: 2px; }
+  .day-title { font-size: 20px; font-weight: bold; }
+  .day-topic { font-size: 12px; color: #888; margin-top: 4px; }
+  .day-pct-big { font-size: 30px; font-weight: bold; text-align: right; }
+  .day-pct-tiny { font-size: 10px; color: #aaa; text-align: right; }
+  .day-nav { display: flex; justify-content: space-between; margin-bottom: 14px; }
+  .nav-day-btn { border: none; border-radius: 8px; padding: 8px 16px; cursor: pointer; font-family: Georgia, serif; font-size: 13px; color: white; }
+  .nav-day-btn:disabled { background: #e8e0d8 !important; color: #aaa; cursor: default; }
+
+  /* SESSION BLOCK */
+  .session-block { background: white; border-radius: 12px; padding: 18px 20px; margin-bottom: 10px; }
+  .session-title { font-weight: bold; font-size: 15px; margin-bottom: 8px; }
+  .session-progress-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .session-count { font-size: 12px; color: #888; }
+
+  /* CHECKBOXES */
+  .check-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px; border-radius: 8px; cursor: pointer; margin-bottom: 4px; border: 1px solid #e8e0d8; background: #faf8f6; transition: all 0.15s; user-select: none; }
+  .check-item.done { background: #f0ebe4; border-color: #c8b89a; }
+  .check-box { width: 20px; height: 20px; border-radius: 5px; border: 2px solid #b0a090; background: white; flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .check-box.done { background: #8B0000; border-color: #8B0000; }
+  .check-tick { color: white; font-size: 12px; font-weight: bold; display: none; }
+  .check-box.done .check-tick { display: block; }
+  .check-label { font-size: 14px; line-height: 1.5; }
+  .check-item.done .check-label { text-decoration: line-through; color: #8B6A4A; }
+
+  /* CLAUDE PROMPT */
+  .claude-box { background: #2C3E7A; border-radius: 12px; padding: 14px 18px; color: white; margin-bottom: 14px; }
+  .claude-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.7; margin-bottom: 8px; }
+  .claude-prompt { font-family: monospace; font-size: 13px; line-height: 1.6; background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; }
+
+  /* COMPLETE BANNER */
+  .complete-banner { border-radius: 12px; padding: 18px 22px; text-align: center; color: white; margin-bottom: 14px; }
+  .complete-title { font-size: 22px; margin-bottom: 4px; }
+  .complete-sub { font-size: 13px; opacity: 0.8; }
+
+  /* TOOLS */
+  .budget-card { background: white; border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; border: 2px solid #8B0000; }
+  .budget-title { font-weight: bold; font-size: 15px; color: #8B0000; margin-bottom: 10px; }
+  .budget-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid #f0e8e0; flex-wrap: wrap; }
+  .budget-badge { font-size: 11px; min-width: 95px; }
+  .budget-name { flex: 1; font-size: 13px; font-weight: bold; min-width: 120px; }
+  .budget-price { font-size: 13px; color: #8B0000; font-weight: bold; min-width: 70px; text-align: right; }
+  .budget-note { font-size: 11px; color: #888; width: 100%; padding-left: 103px; }
+  .budget-total { display: flex; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 2px solid #8B0000; }
+  .budget-total-label { font-weight: bold; }
+  .budget-total-amt { font-weight: bold; color: #8B0000; font-size: 16px; }
+
+  .tool-category-bar { border-radius: 10px; padding: 10px 16px; margin-bottom: 8px; }
+  .tool-category-label { color: white; font-weight: bold; font-size: 14px; letter-spacing: 1px; }
+  .tool-card { background: white; border-radius: 10px; padding: 14px 18px; margin-bottom: 8px; cursor: pointer; border: 1px solid #e8e0d8; transition: all 0.15s; }
+  .tool-card:hover { border-color: #8B0000; }
+  .tool-card-row { display: flex; justify-content: space-between; align-items: flex-start; }
+  .tool-badge { font-size: 10px; padding: 2px 8px; border-radius: 99px; color: white; font-weight: bold; margin-left: 8px; white-space: nowrap; }
+  .tool-name { font-size: 15px; font-weight: bold; }
+  .tool-role { font-size: 12px; color: #888; margin: 3px 0; }
+  .tool-best { font-size: 13px; font-weight: bold; color: #8B0000; }
+
+  /* TOOL DETAIL */
+  .detail-section { background: white; border-radius: 12px; padding: 16px 20px; margin-bottom: 10px; }
+  .detail-label { font-size: 13px; font-weight: bold; color: #8B0000; margin-bottom: 8px; }
+  .detail-content { font-size: 14px; line-height: 1.6; }
+
+  .back-btn { background: none; border: none; cursor: pointer; font-size: 14px; font-family: Georgia, serif; padding: 0; margin-bottom: 14px; display: block; }
+
+  .footer { text-align: center; margin-top: 20px; font-size: 11px; color: #bbb; padding-bottom: 20px; }
+
+  /* Sprint header */
+  .sprint-hero { border-radius: 14px; padding: 20px 24px; color: white; margin-bottom: 18px; }
+  .sprint-hero-num { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; opacity: 0.7; }
+  .sprint-hero-name { font-size: 21px; font-weight: bold; margin: 4px 0; }
+  .sprint-hero-meta { font-size: 13px; opacity: 0.8; margin-bottom: 14px; }
+  .sprint-hero-pct { font-size: 22px; font-weight: bold; }
+
+  .flex-row { display: flex; align-items: center; gap: 12px; }
+  .flex-1 { flex: 1; }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════
+const STUDY_TOOLS = [
+  { category: "PRIMARY READING", color: "#8B0000", tools: [
+    { name: "Kaplan Schweser Premium", role: "Core reading + OnDemand Masterclass — already purchased",
+      price: "$699 — Already owned",
+      bestPlan: "✅ Active — no additional cost. Confirm PassProtection is on.",
+      why: "Your Premium account includes 5-volume notes, SchweserPro QBank, 2 mock exams, and the full OnDemand Masterclass. This is the foundation of every study session. The Masterclass replaces any third-party video provider.",
+      signUp: "schweser.com → My Account → activate OnDemand Masterclass and SchweserPro QBank",
+      promo: "PassProtection included with Premium — confirm it is active in your account settings before June 1.",
+      claude: "After each reading session, open Claude and explain the chapter in your own words. Type: 'I just studied [topic] for CFA Level 1. Here is my understanding: [your explanation]. What is the weakest part? Give me 2 exam-style questions.'",
+      priority: "IN PLAN", pc: "#8B0000" },
+    { name: "CFA Institute LES (Learning Ecosystem)", role: "Official curriculum + official practice questions",
+      price: "Included with exam registration",
+      bestPlan: "Already paid — use it daily alongside Schweser",
+      why: "Official CFAI QBank questions are the closest to actual exam questions that exist. 90th-percentile scorers use LES questions exclusively in the final phase. Premium Practice Pack adds mock exams (~$150) — buy in September only.",
+      signUp: "cfainstitute.org → your exam registration account",
+      promo: "Free with registration. Do NOT buy the Premium Practice Pack until September — save those mocks for the final phase.",
+      claude: "When an LES explanation confuses you, paste it to Claude: 'Explain this answer in plain English and tell me the underlying concept being tested.'",
+      priority: "MUST HAVE", pc: "#8B0000" }
+  ]},
+  { category: "VIDEO INSTRUCTION", color: "#5C3317", tools: [
+    { name: "Schweser OnDemand Masterclass", role: "Video lectures by topic — included in your Premium account",
+      price: "Included in Schweser Premium — already owned",
+      bestPlan: "Already active — no additional cost",
+      why: "Your Masterclass covers every topic LOS by LOS with expert Schweser instructors. Watch at 1.5x speed at the start of each new topic in Session 1. This replaces the need for any third-party video provider.",
+      signUp: "schweser.com → My Account → OnDemand Masterclass → select topic by sprint",
+      promo: "Already paid. Navigate to your account before June 1 and confirm Quant Methods is accessible.",
+      claude: "Watch the Masterclass module at 1.5x in Session 1. Then open Claude: 'I just watched the Schweser Masterclass on [topic]. Test me on the 3 most important concepts covered.' Claude reinforces without re-watching.",
+      priority: "IN PLAN", pc: "#8B0000" }
+  ]},
+  { category: "QBANK & PRACTICE", color: "#004B6E", tools: [
+    { name: "UWorld CFA", role: "Hardest QBank available — questions harder than the actual exam",
+      price: "$299 QBank only · $499 Complete",
+      bestPlan: "QBank Only — $299. Activate at Sprint 4 (Week 6).",
+      why: "r/CFA consensus: UWorld questions are harder than the real exam, making exam day feel easier. Visual explanations best-in-class. Pass Assurance = unlimited access until you pass. Do not activate before Sprint 4 — Schweser QBank is sufficient for Sprints 1–3.",
+      signUp: "finance.uworld.com/cfa/level-1/courses",
+      promo: "Code 300HOUR40 for 40% off · Code SYSFS15 for 15% sitewide (via 300hours.com)",
+      claude: "After a UWorld session, paste wrong-answer topics to Claude: 'I missed questions on [topics]. Give me the conceptual explanation behind each and 2 simpler questions to rebuild the foundation.'",
+      priority: "HIGH VALUE", pc: "#004B6E" },
+    { name: "AnalystPrep", role: "Budget QBank — adaptive analytics, lifetime access",
+      price: "$99 Premium (full QBank + 8 mock half-exams + notes + Pass Guarantee)",
+      bestPlan: "Premium Package — $99. Best dollar-for-dollar value.",
+      why: "960 practice questions. Adaptive routing to your weak areas automatically. Pass Guarantee included. Lifetime access — pay once. Best secondary QBank for variety and adaptive targeting.",
+      signUp: "analystprep.com — or 300hours.gumroad.com for $99 bundle",
+      promo: "Lifetime access. One payment. No subscription.",
+      claude: "Use AnalystPrep's performance tracker to find your 3 weakest topics each week. Bring those 3 topics to the Sunday Claude debrief session.",
+      priority: "OPTIONAL", pc: "#1A472A" }
+  ]},
+  { category: "AI-POWERED TOOLS", color: "#1A472A", tools: [
+    { name: "Kinnu CFA (Lara AI)", role: "AI tutor + adaptive flashcards — context-aware as you study",
+      price: "Free tier available · ~$19–$29/month paid",
+      bestPlan: "Start free on May 29 (Setup Day). Upgrade when daily quiz becomes core habit.",
+      why: "Backed by Anthropic investors. Lara AI is context-aware and adjusts to where you are in the curriculum. Free 60-question diagnostic exam available day one — run it Week 1 to establish your baseline before spending anything.",
+      signUp: "kinnu.xyz — available iOS and Android. Select CFA Level 1 on signup.",
+      promo: "Run the free diagnostic first. No payment needed to start. Level 2 module coming late 2026.",
+      claude: "Kinnu = quiz layer. Claude = explanation layer. After Kinnu flags a weak area, bring it to Claude for a deeper breakdown. They are complementary — use both every day in Session 3.",
+      priority: "IN PLAN", pc: "#8B0000" },
+    { name: "Claude (Anthropic)", role: "Daily concept checker, exam simulator, explanation engine",
+      price: "Free tier · Claude Pro $20/month",
+      bestPlan: "Claude Pro — $20/month during June–November",
+      why: "Most flexible AI study partner available. Explains any concept at any depth, generates unlimited exam questions, simulates Ethics scenarios, challenges your explanations. Used every single day in Session 3.",
+      signUp: "claude.ai — free signup, upgrade to Pro in Settings",
+      promo: "Free tier works. Pro adds longer context — worth it during October–November mock phase.",
+      claude: "This IS Claude. Use the daily prompt template shown in each Day view. More specific = better output. Never ask 'what should I study' — always ask about a specific concept you already studied.",
+      priority: "IN PLAN", pc: "#8B0000" },
+    { name: "Anki (Spaced Repetition)", role: "Flashcard system — locks concepts into long-term memory",
+      price: "Free desktop + Android · $24.99 one-time iPhone/iPad",
+      bestPlan: "Free desktop. Pay $24.99 only if iPhone is your primary study device.",
+      why: "15 minutes of Anki daily outperforms 2 hours of passive re-reading. The most evidence-backed study method in cognitive science. Non-negotiable for a 90%+ target.",
+      signUp: "apps.ankiweb.net for desktop (free). App stores for mobile. Search 'CFA Level 1' in shared deck library.",
+      promo: "Desktop and AnkiWeb sync are completely free. Only the iOS app costs money.",
+      claude: "When you keep failing an Anki card: 'I keep missing this card: [card front and back]. Explain it differently and give me a memory hook.' Claude rewires how you think about the concept.",
+      priority: "IN PLAN", pc: "#8B0000" }
+  ]},
+  { category: "MOCK EXAMS", color: "#2C3E7A", tools: [
+    { name: "Schweser Mock Exams (2 included)", role: "Full mock exams — included in your Premium account",
+      price: "Included in Schweser Premium — already owned",
+      bestPlan: "Save both mocks for October. Do not open before Sprint 9.",
+      why: "You have 2 full Schweser mock exams included. These are your primary simulation tools. Opening them early wastes your best practice resource. Lock them away until October.",
+      signUp: "schweser.com → My Account → Practice Exams",
+      promo: "Already owned. Do not open until October 2026.",
+      claude: "After each mock: paste your score and weakest topic areas to Claude. 'I scored [X]% on a Schweser mock. My weakest areas were [list]. Build me a 2-week remediation plan targeting these topics.'",
+      priority: "IN PLAN", pc: "#8B0000" },
+    { name: "CFA Institute Premium Practice Pack", role: "Official mock exams — closest to actual exam difficulty",
+      price: "~$150 add-on to LES",
+      bestPlan: "Buy in September only — not before",
+      why: "Official CFAI mocks are the gold standard. Candidates who pass consistently report the real exam felt similar to CFAI mocks. Save for October–November final simulation.",
+      signUp: "cfainstitute.org → add to your LES account",
+      promo: "Do NOT buy until 6 weeks from exam. These are your final simulation tools.",
+      claude: "After each official mock: paste score and weak topics to Claude for a structured final-week remediation plan.",
+      priority: "HIGH VALUE", pc: "#5C3317" },
+    { name: "Salt Solutions", role: "Most realistic third-party mocks — highest rated on r/CFA",
+      price: "$199 full package",
+      bestPlan: "Optional — use as mock #3 and #4 in final rotation (Oct–Nov)",
+      why: "r/CFA community consistently rates Salt Solutions mocks as the most realistic third-party option. Use in October–November rotation alongside your Schweser and CFAI official mocks.",
+      signUp: "saltsolutions.com",
+      promo: "Check 300hours.com for 15–20% discount codes before purchasing.",
+      claude: "Same debrief protocol as all mocks — paste weak topics to Claude for targeted final-week remediation.",
+      priority: "OPTIONAL", pc: "#1A472A" }
+  ]},
+  { category: "FREE RESOURCES", color: "#4A1A6E", tools: [
+    { name: "r/CFA (Reddit)", role: "Real candidate discussion — what is actually on the exam",
+      price: "Free",
+      bestPlan: "Read, do not post — consume signal, ignore noise",
+      why: "Most honest real-time feedback on what the exam is testing. Search any topic + 'CFA Level 1 2026' for current experience. Especially useful for Ethics scenarios and mock comparisons.",
+      signUp: "reddit.com/r/CFA — no account needed to read",
+      promo: "Rule: read for signal, ignore panic posts. The exam is passable with a disciplined system.",
+      claude: "When you see an unfamiliar concept on r/CFA, bring it to Claude immediately: 'I saw a question about [topic] on r/CFA. Is this tested on Level 1? Explain the concept.'",
+      priority: "OPTIONAL", pc: "#1A472A" },
+    { name: "300hours.com", role: "Independent CFA prep research + discount code aggregator",
+      price: "Free",
+      bestPlan: "Bookmark for discount codes and tool comparisons",
+      why: "Best independent research site for CFA tools. Not affiliated with any provider. Their 2026 study materials comparison is the most reliable third-party review available.",
+      signUp: "300hours.com — no signup required",
+      promo: "Bookmark their CFA discount codes page for active promo codes on all major providers.",
+      claude: "Use 300hours.com to research tools. Use Claude to decide which tools fit your specific sprint schedule.",
+      priority: "OPTIONAL", pc: "#1A472A" }
+  ]}
+];
+
+const SPRINTS = [
+  { id:1, topic:"Quantitative Methods", weeks:"Jun 1–14", color:"#8B0000", days:[
+    {day:1,date:"Jun 1",label:"Big Picture Overview",
+     s1:["Watch Schweser OnDemand Masterclass: Quant Methods intro at 1.5x speed","Read Schweser Quant intro — big picture only, no memorizing","Write 3 sentences: what is Quantitative Methods and why does it matter for CFA?","Open Kinnu CFA → run the free 60-question diagnostic exam to establish your baseline"],
+     s2:["Time Value of Money — concept read (Schweser notes)","What is a discount rate? Write your own plain English definition","Present Value vs Future Value — draw a simple timeline on paper","Anki: add 5 TVM vocabulary cards to your CFA Level 1 deck"],
+     s3:["Anki daily cards — do every card due today (15 min)","Claude check-in: explain TVM in your own words, ask for 2 practice questions","Kinnu daily quiz (10 min)"]},
+    {day:2,date:"Jun 2",label:"Time Value of Money",
+     s1:["TVM formulas: PV, FV, N, I/Y, PMT — read and write each formula out by hand","Practice 5 basic TVM problems from Schweser end-of-reading questions","Financial calculator drill: N, I/Y, PV, PMT, FV keys — run 3 worked examples","Flag any formula you could not recall without looking"],
+     s2:["Annuities and perpetuities — read Schweser section","Ordinary annuity vs annuity due: what is the difference? Write it out","Practice 3 annuity problems from QBank","Create 3 Anki cards: one for each annuity formula"],
+     s3:["Anki daily cards (15 min)","Claude: 'Explain the difference between an ordinary annuity and an annuity due, then give me 2 exam questions'","Kinnu daily quiz (10 min)"]},
+    {day:3,date:"Jun 3",label:"TVM Deep Drill",
+     s1:["Net Present Value (NPV) — read definition and formula","Internal Rate of Return (IRR) — read definition and formula","NPV vs IRR: when do they conflict? Write 2 sentences in your own words","Practice 4 NPV/IRR problems from SchweserPro QBank"],
+     s2:["TVM review: 10 mixed problems timed (1.5 minutes each — exam pace)","Check answers immediately — mark every wrong one","For each wrong answer: identify the error type (formula error, calculator error, or concept error)","Add Anki cards for every concept behind a wrong answer"],
+     s3:["Anki daily cards (15 min)","Claude: explain the NPV vs IRR conflict in plain English, get 2 exam questions","Kinnu daily quiz (10 min)"]},
+    {day:4,date:"Jun 4",label:"Statistical Concepts",
+     s1:["Watch Schweser Masterclass: Statistics section at 1.5x","Statistics fundamentals: mean, median, mode — read Schweser notes","Population vs sample: write the plain English difference","Variance and standard deviation — read and write both formulas"],
+     s2:["Distributions: normal, skewed, kurtosis — read and sketch each shape","Skewness in plain English: write your own one-sentence definition","Kurtosis in plain English: write your own one-sentence definition","Practice 5 statistics problems from SchweserPro QBank"],
+     s3:["Anki daily cards (15 min)","Claude: 'Explain variance vs standard deviation and when each is used'","Kinnu daily quiz (10 min)"]},
+    {day:5,date:"Jun 5",label:"Probability Basics",
+     s1:["Probability concepts — read Schweser section","Joint probability vs conditional probability — define each in plain English","Multiplication rule and addition rule — write both formulas","Practice 4 basic probability problems"],
+     s2:["Bayes' formula — read and work through one full example","Expected value — formula and one complete worked example","Covariance and correlation — define each in plain English","Create 5 Anki cards for probability terms"],
+     s3:["Anki daily cards (15 min)","Claude: 'Explain expected value in plain English. Give me 2 Level 1 exam questions on probability'","Kinnu daily quiz (10 min)"]},
+    {day:6,date:"Jun 6",label:"Week 1 Catch-Up",
+     s1:["Review all Anki cards rated 'Again' this week — redo them all","Re-read any Schweser section where your QBank score was below 70%","Write a one-paragraph summary of everything covered in Week 1 — from memory first, then check","Identify your 3 weakest concepts from this week — write them down"],
+     s2:["Targeted drill: 15 QBank questions focused on your 3 weakest areas","Check answers — re-read relevant Schweser sections for any wrong","Create new Anki cards for anything that is still not sticking","Claude: 'Give me 3 hard exam-style questions on [your weakest topic]'"],
+     s3:["Anki daily cards (15 min)","Kinnu full topic quiz — all Quant questions available (10 min)","Write tomorrow's plan: what specifically needs most attention in Week 2?"]},
+    {day:7,date:"Jun 7",label:"MOCK DAY — Week 1",
+     s1:["FULL TIMED MOCK: 30 Quant Methods questions, strict exam conditions","No notes, no Schweser, no calculator help — exactly like the real exam","Time yourself: 1.5 minutes per question maximum — move on if stuck","Score immediately when finished — record your result"],
+     s2:["Review every single wrong answer — read the full explanation for each","Group wrong answers by subtopic (TVM, statistics, probability, etc.)","Create Anki cards for every concept behind a wrong answer","Claude debrief: paste your weak subtopics, ask for targeted practice questions"],
+     s3:["Weekly AI Review (see your Sunday calendar reminder for the full protocol)","Plan Week 2 sprint based on your mock results","Rest tonight — your brain consolidates memory during sleep"]},
+    {day:8,date:"Jun 8",label:"Sampling & Hypothesis Testing",
+     s1:["Watch Schweser Masterclass: Sampling and Hypothesis Testing at 1.5x","Sampling methods — read Schweser: simple random, stratified, cluster","Central Limit Theorem — what does it say? Write it in plain English","Standard error of the mean — formula and plain English meaning"],
+     s2:["Hypothesis testing: H0 vs Ha, Type I error vs Type II error — define each","P-value — write your own plain English definition","One-tailed vs two-tailed tests: write 2 rules for when each applies","Practice 5 hypothesis testing problems from QBank"],
+     s3:["Anki daily cards (15 min)","Claude: 'Explain the difference between Type I and Type II errors. Give me 2 exam questions'","Kinnu daily quiz (10 min)"]},
+    {day:9,date:"Jun 9",label:"t-tests & Chi-Square",
+     s1:["t-test: when to use it, formula, degrees of freedom — read and write","z-test vs t-test: write 2 clear rules for when each applies","Practice 4 t-test problems from QBank","Add 3 Anki cards for test statistics"],
+     s2:["Chi-square test — concept read in Schweser","F-test — concept read in Schweser","Practice 4 mixed problems (t-test, chi-square, F-test)","Flag any test type you are confusing with another"],
+     s3:["Anki daily cards (15 min)","Claude: 'When do you use a t-test vs a z-test? Give me a rule and 2 exam questions'","Kinnu daily quiz (10 min)"]},
+    {day:10,date:"Jun 10",label:"Regression & Correlation",
+     s1:["Watch Schweser Masterclass: Regression at 1.5x","Linear regression: Y = a + bX — read Schweser notes","R-squared: write your own plain English definition","Coefficient b: what does it tell you in plain English?"],
+     s2:["Multiple regression — overview only (Level 1 does not go deep here)","ANOVA table in regression context — identify the key values","Correlation vs causation: write 2 examples from real life","Create 5 Anki cards for regression terms"],
+     s3:["Anki daily cards (15 min)","Claude: 'Explain R-squared in plain English. What does a high vs low R-squared mean?'","Kinnu daily quiz (10 min)"]},
+    {day:11,date:"Jun 11",label:"Technical Analysis",
+     s1:["Technical analysis overview — read Schweser (this is a lighter section)","Chart types: line, bar, candlestick — identify each and what they show","Trend lines, support, resistance — define each in plain English","Create 4 Anki cards for chart terminology"],
+     s2:["Moving averages — simple vs exponential: what is the difference?","Relative Strength Index (RSI) — what does it measure?","Practice 5 technical analysis questions from SchweserPro QBank","Note: this section is smaller weight on the exam — do not over-invest time"],
+     s3:["Anki daily cards (15 min)","Claude: 'What is the difference between support and resistance in technical analysis?'","Kinnu daily quiz (10 min)"]},
+    {day:12,date:"Jun 12",label:"Full Quant Review",
+     s1:["Try to write your Week 1 summary paragraph from memory — then check it","Run 20 mixed Quant QBank questions timed (1.5 min each)","Mark every wrong answer — group by subtopic","Re-read Schweser for every subtopic with 2 or more wrong answers"],
+     s2:["Write a one-page Quant formula sheet by hand — all formulas you know","Cover the sheet and write every formula from memory — test yourself","Any formula you cannot reproduce: add a new Anki card immediately","Claude: 'What are the 5 most likely Quant mistakes on CFA Level 1 exam day?'"],
+     s3:["Anki daily cards (15 min)","Kinnu topic mastery quiz — all Quant content","Review your formula sheet one more time before bed"]},
+    {day:13,date:"Jun 13",label:"Final Drill & Formula Lock",
+     s1:["Calculator drills: 10 TVM problems under time pressure (1.5 min each)","Hypothesis testing: 10 problems — identify the test type before solving each","Regression: 5 problems — focus on interpretation, not just calculation","Goal: zero hesitation on any formula recall"],
+     s2:["Review your full Anki deck for Quant — every card, including mature ones","For any card rated 'Hard': re-read the source material in Schweser","Write your personal top 5 danger zones — concepts most likely to trip you up","Claude: 'Give me the 5 hardest Quant Level 1 concepts and one exam question on each'"],
+     s3:["Anki daily cards (15 min)","Kinnu quiz (10 min)","Rest early — Sprint Final Mock is tomorrow"]},
+    {day:14,date:"Jun 14",label:"SPRINT 1 FINAL MOCK",
+     s1:["FULL SPRINT MOCK: 40 Quant questions, complete exam conditions","Strict time: 1.5 minutes per question — no exceptions","No interruptions — phone on silent, simulate the real exam environment","Record your score immediately — target is 85% or above"],
+     s2:["Full mock review — go through every single wrong answer","Create Anki cards for every new gap discovered in the mock","Record Sprint 1 completion score in your study log","If below 85%: identify exactly 3 remediation topics to carry into Sprint 2"],
+     s3:["Weekly AI Review (Sunday protocol — see calendar reminder)","Sprint 1 complete — rest this evening","Sprint 2 begins Monday: Economics"]}
+  ]},
+  {id:2,topic:"Economics",weeks:"Jun 15–28",color:"#7B3F00",days:
+    ["Demand & Supply Basics","Price Elasticity","Consumer & Producer Surplus","Market Structures","GDP & National Accounts","Business Cycles","Inflation & Interest Rates","Monetary Policy","Fiscal Policy","International Trade","Currency Exchange Rates","Economics Review","Final Drill","Sprint 2 Mock"].map((label,i)=>({
+      day:i+1,date:`Jun ${15+i}`,label,
+      s1:["Watch Schweser OnDemand Masterclass for today's topic at 1.5x speed","Read Schweser notes for today's Economics topic","Write plain English definition of the core concept","Create 3–5 Anki cards for new vocabulary"],
+      s2:["Practice 8–10 SchweserPro QBank questions on today's topic","Mark wrong answers and re-read relevant Schweser notes","Add Anki cards for any concept behind a wrong answer","Claude check-in: explain today's core concept in your own words, ask for 2 exam questions"],
+      s3:["Anki daily cards (15 min)","Kinnu daily quiz (10 min)","Claude concept check — ask for your most likely mistake on today's topic (10 min)"]
+    }))
+  },
+  {id:3,topic:"Financial Statement Analysis",weeks:"Jun 29–Jul 19",color:"#004B6E",days:
+    ["FSA Overview & Framework","Income Statement","Balance Sheet","Cash Flow Statement","Financial Analysis Techniques","Inventories","Long-Lived Assets","Income Taxes","Non-Current Liabilities","Financial Reporting Quality","FSA Review Week 1","Revenue Recognition","Lease Accounting","Sprint 3 Mock"].map((label,i)=>({
+      day:i+1,date:`Jul ${i+1}`,label,
+      s1:["Watch Schweser OnDemand Masterclass for today's FSA topic at 1.5x speed","Read Schweser FSA notes for today","Identify the 3 most testable concepts in today's reading","Create Anki cards for key ratios or formulas covered today"],
+      s2:["Practice 10 SchweserPro QBank questions on today's topic","Review wrong answers — read the full explanation for each","Add Anki cards for persistent gaps","Update your ratio cheat sheet with any new ratios from today"],
+      s3:["Anki daily cards (15 min)","Kinnu quiz (10 min)","Claude: explain today's hardest concept in plain English, get 2 exam questions"]
+    }))
+  },
+  {id:4,topic:"Corporate Issuers",weeks:"Jul 20–Aug 2",color:"#1A472A",days:
+    ["Capital Structure","Cost of Capital (WACC)","Leverage","Dividends & Buybacks","Corporate Governance","ESG Basics","Working Capital","Capital Budgeting","Business Models","Stakeholder Theory","Corporate Issuers Review","NPV Drill","Mock Prep","Sprint 4 Mock"].map((label,i)=>({
+      day:i+1,date:`Jul ${20+i}`,label,
+      s1:["Watch Schweser OnDemand Masterclass for today's topic at 1.5x speed","Read Schweser notes for today's topic","Define core concepts in plain English","Add Anki cards for new concepts and formulas"],
+      s2:["10 SchweserPro QBank questions — timed at 1.5 min each","Review every wrong answer","Update your formula sheet","Claude check-in: explain today's main concept, get 2 exam questions"],
+      s3:["Anki (15 min)","Kinnu quiz (10 min)","Write a 3-sentence summary of today's topic from memory"]
+    }))
+  },
+  {id:5,topic:"Equity Investments",weeks:"Aug 3–16",color:"#2C3E7A",days:
+    ["Market Organization","Security Markets","Indexes","Market Efficiency","Overview of Equity Securities","Industry & Company Analysis","Equity Valuation: DDM","Price Multiples","EV Multiples","Free Cash Flow Valuation","Equity Review Week 1","Valuation Drill","Mock Prep","Sprint 5 Mock"].map((label,i)=>({
+      day:i+1,date:`Aug ${3+i}`,label,
+      s1:["Watch Schweser OnDemand Masterclass at 1.5x speed","Read Schweser notes — core concepts","Write key formulas from memory","Add Anki cards"],
+      s2:["10 QBank questions","Review wrong answers","Valuation model practice","Claude check-in"],
+      s3:["Anki (15 min)","Kinnu quiz (10 min)","Claude debrief on today's hardest concept"]
+    }))
+  },
+  {id:6,topic:"Fixed Income",weeks:"Aug 17–30",color:"#4A1A6E",days:
+    ["Bond Characteristics","Bond Markets","Bond Valuation","Yield Measures","Duration Basics","Convexity","Credit Analysis","Credit Risk","Structured Products","Fixed Income Review","Duration Drill","Yield Curve Analysis","Mock Prep","Sprint 6 Mock"].map((label,i)=>({
+      day:i+1,date:`Aug ${17+i}`,label,
+      s1:["Watch Schweser OnDemand Masterclass at 1.5x speed","Read Schweser notes — duration and yield concepts","Write key formulas from memory","Add Anki cards"],
+      s2:["10 QBank questions","Review wrong answers","Duration calculation practice","Claude check-in"],
+      s3:["Anki (15 min)","Kinnu quiz (10 min)","Claude: explain today's hardest fixed income concept"]
+    }))
+  },
+  {id:7,topic:"Derivatives",weeks:"Aug 31–Sep 6",color:"#5C3317",days:
+    ["Derivatives Overview","Options Basics","Futures & Forwards","Swaps","Options Pricing","Put-Call Parity","Sprint 7 Mock"].map((label,i)=>({
+      day:i+1,date:`Sep ${i+1}`,label,
+      s1:["Watch Schweser OnDemand Masterclass at 1.5x speed","Read Schweser notes — define each instrument in plain English","Write payoff diagrams by hand","Add Anki cards for instrument types"],
+      s2:["8 QBank questions","Review wrong answers","Payoff calculation practice","Claude check-in"],
+      s3:["Anki (15 min)","Kinnu quiz (10 min)","Claude debrief"]
+    }))
+  },
+  {id:8,topic:"Alternative Investments",weeks:"Sep 7–13",color:"#2E4A1A",days:
+    ["Alternatives Overview","Private Equity","Real Estate","Commodities","Hedge Funds","Infrastructure","Sprint 8 Mock"].map((label,i)=>({
+      day:i+1,date:`Sep ${7+i}`,label,
+      s1:["Watch Schweser OnDemand Masterclass at 1.5x speed","Read Schweser notes — define asset class characteristics","Return and risk profile notes for each asset class","Add Anki cards"],
+      s2:["8 QBank questions","Review wrong answers","Compare each asset class to traditional equity and fixed income","Claude check-in"],
+      s3:["Anki (15 min)","Kinnu quiz (10 min)","Claude debrief"]
+    }))
+  },
+  {id:9,topic:"Portfolio Management",weeks:"Sep 14–20",color:"#1A3A4E",days:
+    ["Portfolio Theory Basics","Risk & Return","Efficient Frontier","CAPM","IPS & Client Types","Diversification Drill","Sprint 9 Mock"].map((label,i)=>({
+      day:i+1,date:`Sep ${14+i}`,label,
+      s1:["Watch Schweser OnDemand Masterclass at 1.5x speed","Read Schweser notes — portfolio theory in plain English","CAPM formula: write every component and what it means","Add Anki cards"],
+      s2:["8 QBank questions","Review wrong answers","Sketch the efficient frontier — label axes, minimum variance portfolio, capital market line","Claude check-in"],
+      s3:["Anki (15 min)","Kinnu quiz (10 min)","Claude debrief"]
+    }))
+  },
+  {id:10,topic:"Ethics & Professional Standards",weeks:"Sep 21–Oct 4",color:"#3D1A00",days:
+    ["Ethics Overview & Code","Standards I–II","Standards III","Standards IV","Standards V","Standards VI–VII","GIPS Overview","Ethics Application Cases","Ethics Case Drill 1","Ethics Case Drill 2","Ethics Review","Hard Cases","Mock Prep","Sprint 10 Mock"].map((label,i)=>({
+      day:i+1,date:`${i<9?'Sep '+(21+i):'Oct '+(i-8)}`,label,
+      s1:["Read CFA Institute Ethics text — use the actual CFA source, not just Schweser. Ethics is different.","Identify the specific Standard being tested in each practice scenario","Write one real-world example for each Standard studied today","Flag any Standard that felt ambiguous — ambiguity is exactly how it is tested on the exam"],
+      s2:["10 SchweserPro QBank Ethics questions — these are scenario-based, read every word carefully","For every wrong answer: identify which specific Standard applies and exactly why","Ethics has the highest weight on the exam — treat every question as if it counts double","Claude: 'Give me a hard Ethics scenario involving [today's Standards] and walk me through the correct reasoning'"],
+      s3:["Anki (15 min)","Kinnu quiz (10 min)","Claude Ethics scenario practice — ask for one more case"]
+    }))
+  }
+];
+
+const FINAL_PHASE = {
+  label:"Final Review & Mock Exams", weeks:"Oct 5 – Nov 10",
+  milestones:[
+    {date:"Oct 5–11",task:"Full curriculum review — all 10 topics, 2 hours each"},
+    {date:"Oct 12–18",task:"Full mock exam #1 — Schweser mock, AM + PM, timed"},
+    {date:"Oct 19–25",task:"Mock #1 deep review — rebuild every weak area"},
+    {date:"Oct 26–Nov 1",task:"Full mock exam #2 — CFAI Premium Practice Pack"},
+    {date:"Nov 2–8",task:"Final targeted drill on weakest 3 topics only"},
+    {date:"Nov 9–10",task:"Light review only — no new material. Sleep. Prepare."},
+    {date:"Nov 11–17",task:"🎯 CFA LEVEL 1 EXAM WINDOW"}
+  ]
+};
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+const KEY = "cfa_v3";
+let state = {
+  view: "overview", // overview | sprint | day | tools | toolDetail
+  sprint: 1, day: 1,
+  activeTool: null,
+  progress: JSON.parse(localStorage.getItem(KEY)||"{}")
+};
+
+function save() { localStorage.setItem(KEY, JSON.stringify(state.progress)); }
+
+function toggle(k) {
+  state.progress[k] = !state.progress[k];
+  save(); render();
+}
+
+// ═══════════════════════════════════════════════════════
+// CALCULATIONS
+// ═══════════════════════════════════════════════════════
+function taskKey(sid, day, ses, idx) { return `${sid}-${day}-${ses}-${idx}`; }
+
+function dayTasks(sid, day) {
+  const d = SPRINTS.find(s=>s.id===sid).days[day-1];
+  return [
+    ...d.s1.map((_,i)=>taskKey(sid,day,"s1",i)),
+    ...d.s2.map((_,i)=>taskKey(sid,day,"s2",i)),
+    ...d.s3.map((_,i)=>taskKey(sid,day,"s3",i))
+  ];
+}
+
+function dayPct(sid, day) {
+  const keys = dayTasks(sid, day);
+  const done = keys.filter(k=>state.progress[k]).length;
+  return Math.round((done/keys.length)*100);
+}
+
+function sprintPct(sid) {
+  const sp = SPRINTS.find(s=>s.id===sid);
+  let total=0, done=0;
+  sp.days.forEach(d=>{
+    const keys = dayTasks(sid, d.day);
+    total += keys.length;
+    done += keys.filter(k=>state.progress[k]).length;
+  });
+  return total>0 ? Math.round((done/total)*100) : 0;
+}
+
+function overallPct() {
+  let total=0, done=0;
+  SPRINTS.forEach(sp => sp.days.forEach(d=>{
+    const keys = dayTasks(sp.id, d.day);
+    total += keys.length;
+    done += keys.filter(k=>state.progress[k]).length;
+  }));
+  return total>0 ? Math.round((done/total)*100) : 0;
+}
+
+function totalDone() {
+  return Object.values(state.progress).filter(Boolean).length;
+}
+
+function totalTasks() {
+  return SPRINTS.reduce((acc,sp)=>acc+sp.days.reduce((a,d)=>a+d.s1.length+d.s2.length+d.s3.length,0),0);
+}
+
+// ═══════════════════════════════════════════════════════
+// HTML BUILDERS
+// ═══════════════════════════════════════════════════════
+function meter(pct, color, h=8) {
+  return `<div class="meter-wrap" style="height:${h}px"><div class="meter-fill" style="width:${pct}%;height:${h}px;background:${color}"></div></div>`;
+}
+
+function nav() {
+  const ov = (state.view==="overview"||state.view==="sprint"||state.view==="day");
+  const tl = (state.view==="tools"||state.view==="toolDetail");
+  return `<div class="nav">
+    <button class="nav-btn ${ov?"active":""}" onclick="go('overview')">📊 Sprints</button>
+    <button class="nav-btn ${tl?"active":""}" onclick="go('tools')">🛠 Study Tools</button>
+  </div>`;
+}
+
+function checkItem(k, label) {
+  const done = !!state.progress[k];
+  return `<div class="check-item ${done?"done":""}" onclick="toggle('${k}')">
+    <div class="check-box ${done?"done":""}"><span class="check-tick">✓</span></div>
+    <span class="check-label">${label}</span>
+  </div>`;
+}
+
+function sessionBlock(title, tasks, sid, day, ses, titleColor) {
+  const items = tasks.map((t,i)=>({t,k:taskKey(sid,day,ses,i)}));
+  const done = items.filter(x=>state.progress[x.k]).length;
+  const pct = Math.round((done/tasks.length)*100);
+  return `<div class="session-block">
+    <div class="session-progress-row">
+      <div class="session-title" style="color:${titleColor}">${title}</div>
+      <div class="session-count">${done}/${tasks.length}</div>
+    </div>
+    ${meter(pct, titleColor, 5)}
+    <div style="margin-top:8px">${items.map(x=>checkItem(x.k,x.t)).join("")}</div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// VIEWS
+// ═══════════════════════════════════════════════════════
+function viewOverview() {
+  const pct = overallPct();
+  const done = totalDone();
+  const total = totalTasks();
+  return `
+    ${nav()}
+    <div class="hero">
+      <div class="hero-sub">Acadiana FPC</div>
+      <div class="hero-title">CFA Level 1 Study Tracker</div>
+      <div class="hero-meta">Jun 1 – Nov 17, 2026 · Target: 90%+ · Schweser Premium + AI Sprint System</div>
+      <div class="flex-row">
+        <div class="flex-1"><div style="background:rgba(255,255,255,0.2);border-radius:99px;height:12px;overflow:hidden"><div style="width:${pct}%;height:12px;background:white;border-radius:99px;transition:width 0.4s"></div></div></div>
+        <div class="hero-pct">${pct}%</div>
+      </div>
+      <div style="font-size:12px;opacity:0.7;margin-top:4px">${done} of ${total} tasks complete</div>
+    </div>
+
+    <div class="ai-bar">
+      <div class="ai-bar-label">Daily AI Stack</div>
+      <div class="ai-grid">
+        <div><div class="ai-item-name">📚 Schweser Premium</div><div class="ai-item-desc">Masterclass + QBank — sets the agenda</div></div>
+        <div><div class="ai-item-name">🃏 Anki</div><div class="ai-item-desc">15 min daily — spaced repetition</div></div>
+        <div><div class="ai-item-name">🤖 Claude</div><div class="ai-item-desc">Post-session concept check</div></div>
+        <div><div class="ai-item-name">📱 Kinnu CFA</div><div class="ai-item-desc">10 min daily quiz with Lara AI</div></div>
+      </div>
+    </div>
+
+    <div class="section-title">10 Sprints to Exam Day</div>
+    ${SPRINTS.map(sp=>{
+      const p = sprintPct(sp.id);
+      return `<div class="sprint-card" style="border-color:${p===100?sp.color:'#e8e0d8'}" onclick="openSprint(${sp.id})">
+        <div class="sprint-card-row">
+          <div><span class="sprint-num">Sprint ${sp.id}</span><span class="sprint-name">${sp.topic}</span></div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="sprint-weeks">${sp.weeks}</span>
+            <span class="sprint-pct-label" style="color:${sp.color}">${p}%</span>
+            <span class="sprint-arrow">›</span>
+          </div>
+        </div>
+        ${meter(p, sp.color, 5)}
+      </div>`;
+    }).join("")}
+
+    <div class="final-card">
+      <div style="font-weight:bold;font-size:15px;margin-bottom:4px">🎯 ${FINAL_PHASE.label}</div>
+      <div style="font-size:12px;opacity:0.7;margin-bottom:10px">${FINAL_PHASE.weeks}</div>
+      ${FINAL_PHASE.milestones.map(m=>`<div class="final-row"><span class="final-date">${m.date}</span><span>${m.task}</span></div>`).join("")}
+    </div>
+
+    <div class="footer">Acadiana Financial Planning Center · Where Good Education Becomes an Actionable Plan</div>`;
+}
+
+function viewSprint() {
+  const sp = SPRINTS.find(s=>s.id===state.sprint);
+  const p = sprintPct(sp.id);
+  return `
+    ${nav()}
+    <button class="back-btn" style="color:${sp.color}" onclick="go('overview')">← All Sprints</button>
+    <div class="sprint-hero" style="background:${sp.color}">
+      <div class="sprint-hero-num">Sprint ${sp.id}</div>
+      <div class="sprint-hero-name">${sp.topic}</div>
+      <div class="sprint-hero-meta">${sp.weeks} · ${sp.days.length} study days</div>
+      <div class="flex-row">
+        <div class="flex-1"><div style="background:rgba(255,255,255,0.2);border-radius:99px;height:10px;overflow:hidden"><div style="width:${p}%;height:10px;background:white;border-radius:99px;transition:width 0.4s"></div></div></div>
+        <div class="sprint-hero-pct">${p}%</div>
+      </div>
+    </div>
+    <div class="day-grid">
+      ${sp.days.map(d=>{
+        const dp = dayPct(sp.id, d.day);
+        const done = dp===100;
+        return `<div class="day-card" style="background:${done?sp.color:'white'};border-color:${dp>0?sp.color:'#e8e0d8'}" onclick="openDay(${sp.id},${d.day})">
+          <div class="day-num" style="color:${done?'rgba(255,255,255,0.7)':'#888'}">Day ${d.day} · ${d.date}</div>
+          <div class="day-label" style="color:${done?'white':'#2d2520'}">${d.label}</div>
+          ${meter(dp, done?'rgba(255,255,255,0.4)':sp.color, 4)}
+          <div class="day-pct-label" style="color:${done?'rgba(255,255,255,0.8)':'#888'}">${dp}%</div>
+        </div>`;
+      }).join("")}
+    </div>`;
+}
+
+function viewDay() {
+  const sp = SPRINTS.find(s=>s.id===state.sprint);
+  const d = sp.days[state.day-1];
+  const dp = dayPct(sp.id, state.day);
+  const prevDisabled = state.day===1;
+  const nextDisabled = state.day===sp.days.length;
+  return `
+    ${nav()}
+    <button class="back-btn" style="color:${sp.color}" onclick="go('sprint')">← Sprint ${sp.id}: ${sp.topic}</button>
+    <div class="day-header" style="border:2px solid ${sp.color}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div class="day-meta">Sprint ${sp.id} · Day ${state.day} · ${d.date}</div>
+          <div class="day-title">${d.label}</div>
+          <div class="day-topic">${sp.topic}</div>
+        </div>
+        <div>
+          <div class="day-pct-big" style="color:${sp.color}">${dp}%</div>
+          <div class="day-pct-tiny">complete</div>
+        </div>
+      </div>
+      <div style="margin-top:12px">${meter(dp, sp.color, 10)}</div>
+    </div>
+
+    <div class="day-nav">
+      <button class="nav-day-btn" style="background:${sp.color}" ${prevDisabled?"disabled":""} onclick="prevDay()">← Day ${state.day-1}</button>
+      <button class="nav-day-btn" style="background:${sp.color}" ${nextDisabled?"disabled":""} onclick="nextDay()">Day ${state.day+1} →</button>
+    </div>
+
+    ${sessionBlock("📖 Session 1 — 90 Min (8:00–9:30 AM)", d.s1, sp.id, state.day, "s1", "#8B0000")}
+    ${sessionBlock("📝 Session 2 — 90 Min (10:50 AM–12:20 PM)", d.s2, sp.id, state.day, "s2", "#5C3317")}
+    ${sessionBlock("🤖 Session 3 — AI Integration (1:40–2:20 PM)", d.s3, sp.id, state.day, "s3", "#1A3A4E")}
+
+    <div class="claude-box">
+      <div class="claude-label">Today's Claude Prompt — Copy and Paste This</div>
+      <div class="claude-prompt">"I just studied <strong>${d.label}</strong> for CFA Level 1. Here is my understanding: [write 3–5 sentences explaining it in your own words]. What is the weakest part of my explanation? Give me 2 exam-style questions on this topic."</div>
+    </div>
+
+    ${dp===100?`<div class="complete-banner" style="background:${sp.color}"><div class="complete-title">✓ Day Complete</div><div class="complete-sub">All tasks finished. Rest tonight — your brain consolidates this during sleep.</div></div>`:""}
+    `;
+}
+
+function viewTools() {
+  const budget = [
+    ["✅ OWNED","Schweser Premium (Masterclass + QBank + 2 Mocks)","$699 paid","PassProtection — confirm active in your account"],
+    ["🔴 MUST HAVE","CFA Institute LES","Free","Included with registration — use daily"],
+    ["🔴 IN PLAN","Anki (iPhone)","$24.99","Or free on desktop/Android"],
+    ["🔴 IN PLAN","Kinnu CFA","Free → ~$29/mo","Start free May 29 — Setup Day"],
+    ["🔴 IN PLAN","Claude Pro","$20/mo","Upgrade June 1"],
+    ["🟡 HIGH VALUE","UWorld QBank","$299","Activate at Sprint 4 — use code 300HOUR40"],
+    ["🟡 HIGH VALUE","CFAI Premium Practice Pack","~$150","Buy September only"],
+    ["🟢 OPTIONAL","AnalystPrep Premium","$99","Best budget add-on — lifetime access"],
+    ["🟢 OPTIONAL","Salt Solutions Mocks","$199","Final phase only — Oct/Nov"],
+  ];
+  return `
+    ${nav()}
+    <div class="hero">
+      <div class="hero-sub">Complete Reference</div>
+      <div class="hero-title">CFA Level 1 Study Tools</div>
+      <div class="hero-meta">Every tool ranked, priced, and integrated with your AI sprint system</div>
+    </div>
+
+    <div class="budget-card">
+      <div class="budget-title">📋 Your Stack — Complete Investment Summary</div>
+      ${budget.map(([badge,name,price,note])=>`
+        <div class="budget-row">
+          <span class="budget-badge">${badge}</span>
+          <span class="budget-name">${name}</span>
+          <span class="budget-price">${price}</span>
+          <span class="budget-note">${note}</span>
+        </div>`).join("")}
+      <div class="budget-total">
+        <span class="budget-total-label">Remaining spend (Schweser already owned)</span>
+        <span class="budget-total-amt">~$563 + $49/mo</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px">
+        <span style="color:#888;font-size:12px">Lean must-haves only (Schweser owned)</span>
+        <span style="color:#5C3317;font-size:13px;font-weight:bold">~$45 + $49/mo</span>
+      </div>
+    </div>
+
+    ${STUDY_TOOLS.map(cat=>`
+      <div class="tool-category-bar" style="background:${cat.color}">
+        <div class="tool-category-label">${cat.category}</div>
+      </div>
+      ${cat.tools.map((tool,ti)=>`
+        <div class="tool-card" onclick="openTool(${STUDY_TOOLS.indexOf(cat)},${ti})">
+          <div class="tool-card-row">
+            <div class="flex-1">
+              <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:3px">
+                <span class="tool-name">${tool.name}</span>
+                <span class="tool-badge" style="background:${tool.pc}">${tool.priority}</span>
+              </div>
+              <div class="tool-role">${tool.role}</div>
+              <div class="tool-best">${tool.bestPlan}</div>
+            </div>
+            <span class="sprint-arrow">›</span>
+          </div>
+        </div>`).join("")}
+    `).join("")}`;
+}
+
+function viewToolDetail() {
+  const tool = state.activeTool;
+  if (!tool) return viewTools();
+  const sections = [
+    ["💰 Pricing Options", tool.price],
+    ["✅ Best Plan for This System", tool.bestPlan],
+    ["🎯 Why It Belongs in the Stack", tool.why],
+    ["🔗 How to Sign Up / Access", tool.signUp],
+    ["🏷 Promo / Access Notes", tool.promo],
+    ["🤖 How Claude + This Tool Work Together", tool.claude],
+  ];
+  return `
+    ${nav()}
+    <button class="back-btn" style="color:#8B0000" onclick="go('tools')">← Study Tools</button>
+    <div class="hero" style="background:#8B0000">
+      <div class="hero-sub">${tool.priority}</div>
+      <div class="hero-title">${tool.name}</div>
+      <div class="hero-meta">${tool.role}</div>
+    </div>
+    ${sections.map(([label,content])=>`
+      <div class="detail-section">
+        <div class="detail-label">${label}</div>
+        <div class="detail-content">${content}</div>
+      </div>`).join("")}
+    <div class="claude-box">
+      <div class="claude-label">Integration Rule</div>
+      <div style="font-size:14px;line-height:1.6;opacity:0.9">Every tool in this stack supports the Schweser-first reading order. No tool replaces the primary reading. Each one reinforces what Schweser and the Masterclass taught.</div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════
+function go(v) { state.view=v; render(); window.scrollTo(0,0); }
+function openSprint(id) { state.sprint=id; state.view="sprint"; render(); window.scrollTo(0,0); }
+function openDay(sid, day) { state.sprint=sid; state.day=day; state.view="day"; render(); window.scrollTo(0,0); }
+function prevDay() { if(state.day>1){state.day--;render();window.scrollTo(0,0);} }
+function nextDay() { const sp=SPRINTS.find(s=>s.id===state.sprint); if(state.day<sp.days.length){state.day++;render();window.scrollTo(0,0);} }
+function openTool(catIdx, toolIdx) { state.activeTool=STUDY_TOOLS[catIdx].tools[toolIdx]; state.view="toolDetail"; render(); window.scrollTo(0,0); }
+
+// ═══════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════
+function render() {
+  const app = document.getElementById("app");
+  switch(state.view) {
+    case "overview":   app.innerHTML = viewOverview(); break;
+    case "sprint":     app.innerHTML = viewSprint(); break;
+    case "day":        app.innerHTML = viewDay(); break;
+    case "tools":      app.innerHTML = viewTools(); break;
+    case "toolDetail": app.innerHTML = viewToolDetail(); break;
+    default:           app.innerHTML = viewOverview();
+  }
+}
+
+render();
+</script>
+</body>
+</html>
